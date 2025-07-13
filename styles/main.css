@@ -952,16 +952,16 @@ section + section {
 
 .episode-card {
     background: var(--white);
-    border-radius: var(--radius-lg);
-    padding: var(--space-lg);
-    margin-bottom: 0; /* Remove margin since we're using grid gap */
-    box-shadow: var(--shadow-sm);
+    border-radius: var(--radius-xl); /* Slightly rounder corners */
+    padding: var(--space-xl); /* More padding inside cards */
+    margin-bottom: 0;
+    box-shadow: 0 6px 24px rgba(76, 29, 149, 0.07); /* Softer, lighter shadow */
     border: 1px solid var(--border-color);
     transition: all var(--transition);
     display: flex;
     flex-direction: column;
-    min-height: 250px; /* Reduced height for 3-column layout */
-    max-height: 320px; /* Reduced max height */
+    min-height: 250px;
+    max-height: 320px;
 }
 
 .episode-card:hover {
@@ -1087,8 +1087,9 @@ section + section {
 .episodes-container {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-lg);
-    margin-top: var(--space-lg);
+    gap: var(--space-xl); /* Increased gap for more breathing space */
+    margin-top: var(--space-2xl);
+    margin-bottom: var(--space-2xl);
 }
 
 /* ============================================
