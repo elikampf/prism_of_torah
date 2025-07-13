@@ -97,7 +97,7 @@ body {
 
 .container {
     width: 90%;
-    max-width: 1000px; /* Reduced for better readability */
+    max-width: 1400px; /* Increased for wider cards */
     margin: 0 auto;
     padding: 0 var(--space-md);
 }
@@ -960,8 +960,8 @@ section + section {
     transition: all var(--transition);
     display: flex;
     flex-direction: column;
-    min-height: 250px;
-    max-height: 320px;
+    min-height: 375px; /* 1.5x taller */
+    max-height: 480px; /* 1.5x taller */
 }
 
 .episode-card:hover {
@@ -1086,7 +1086,7 @@ section + section {
 
 .episodes-container {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, 1fr); /* Keep 3 columns, but cards are now wider */
     gap: var(--space-xl); /* Increased gap for more breathing space */
     margin-top: var(--space-2xl);
     margin-bottom: var(--space-2xl);
