@@ -742,12 +742,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const durationDisplay = duration_minutes ? 
                     `${Math.floor(duration_minutes)}:${String(Math.round((duration_minutes % 1) * 60)).padStart(2, '0')}` : '';
                 
-                // Truncate description to 50 words
+                // Truncate description to 20 words
                 const truncateDescription = (text) => {
                     if (!text) return 'No description available.';
                     const words = text.split(' ');
-                    if (words.length <= 50) return text;
-                    return words.slice(0, 50).join(' ') + '...';
+                    if (words.length <= 20) return text;
+                    return words.slice(0, 20).join(' ') + '...';
                 };
                 
                 const truncatedDescription = truncateDescription(episode_description);
