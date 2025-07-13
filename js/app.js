@@ -742,6 +742,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 const durationDisplay = duration_minutes ? 
                     `${Math.floor(duration_minutes)}:${String(Math.round((duration_minutes % 1) * 60)).padStart(2, '0')}` : '';
                 
+                // Truncate description to 50 words
+                const truncateDescription = (text) => {
+                    if (!text) return 'No description available.';
+                    const words = text.split(' ');
+                    if (words.length <= 50) return text;
+                    return words.slice(0, 50).join(' ') + '...';
+                };
+                
+                const truncatedDescription = truncateDescription(episode_description);
+                
                 return `
                     <div class="episode-card" data-sefer="${sefer}" data-parsha="${parsha}">
                         <div class="episode-header">
@@ -754,7 +764,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                         <div class="episode-content">
                             <div class="episode-desc">
-                                <p>${episode_description}</p>
+                                <p>${truncatedDescription}</p>
                             </div>
                             ${embed_url ? `
                                 <div class="spotify-embed">
