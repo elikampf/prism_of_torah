@@ -504,9 +504,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     const testResponse = await fetch('Data/Bereishis.json');
                     console.log('Data directory accessible:', testResponse.ok);
+                    if (!testResponse.ok) {
+                        console.error('Data directory test failed:', testResponse.status, testResponse.statusText);
+                    }
                 } catch (testError) {
                     console.error('Data directory not accessible:', testError);
                 }
+                
+                let successCount = 0;
+                let errorCount = 0;
                 
                 for (const sefer of TORAH_ORDER.Seforim) {
                     try {
@@ -515,6 +521,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         
                         if (!response.ok) {
                             console.error(`Failed to load ${sefer}.json: ${response.status} ${response.statusText}`);
+                            errorCount++;
                             continue;
                         }
                         
@@ -530,7 +537,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                     : 'Unknown'
                             }));
                             allEpisodes.push(...episodesWithSefer);
-                            console.log(`Loaded ${data.length} episodes from ${sefer}`);
+                            console.log(`✓ Loaded ${data.length} episodes from ${sefer}`);
+                            successCount++;
                         } else if (data && Array.isArray(data.episodes)) {
                             // JSON is { episodes: [...] }
                             const episodesWithSefer = data.episodes.map(episode => ({
@@ -538,55 +546,61 @@ document.addEventListener('DOMContentLoaded', () => {
                                 sefer: sefer
                             }));
                             allEpisodes.push(...episodesWithSefer);
-                            console.log(`Loaded ${data.episodes.length} episodes from ${sefer}`);
+                            console.log(`✓ Loaded ${data.episodes.length} episodes from ${sefer}`);
+                            successCount++;
                         } else {
-                            console.warn(`No episodes found in ${sefer}.json`);
+                            console.warn(`⚠ No episodes found in ${sefer}.json, structure:`, data);
+                            errorCount++;
                         }
                         
                     } catch (error) {
-                        console.error(`Error loading ${sefer}.json:`, error);
+                        console.error(`✗ Error loading ${sefer}.json:`, error);
+                        errorCount++;
                     }
                 }
                 
-                // Hide loading state
-                if (loadingSpinner) {
-                    loadingSpinner.style.display = 'none';
-                }
+                console.log(`Episodes loading complete: ${successCount} successful, ${errorCount} errors`);
+                console.log(`Total episodes loaded: ${allEpisodes.length}`);
                 
                 if (allEpisodes.length === 0) {
-                    console.error('No episodes loaded from any JSON files');
+                    console.error('No episodes loaded! Check Data directory and JSON files.');
+                    // Display error message to user
                     if (episodesList) {
                         episodesList.innerHTML = `
                             <div class="error-message">
-                                <p>Unable to load episodes. This might be due to:</p>
-                                <ul>
-                                    <li>Network connectivity issues</li>
-                                    <li>JSON files not being served correctly</li>
-                                    <li>Case sensitivity issues on the server</li>
-                                </ul>
-                                <p>Please try refreshing the page or contact support if the issue persists.</p>
-                                <button onclick="location.reload()" class="btn btn-primary">Retry</button>
+                                <h3>Unable to load episodes</h3>
+                                <p>There seems to be an issue loading the podcast episodes. Please try refreshing the page.</p>
+                                <p>If the problem persists, please contact support.</p>
                             </div>
                         `;
                     }
                     return;
                 }
                 
+                // Store episodes in state
                 state.episodes = allEpisodes;
                 state.filteredEpisodes = allEpisodes;
-                renderEpisodes();
                 
-                console.log(`Successfully loaded ${allEpisodes.length} total episodes`);
+                // Update UI
+                updateAndRender();
                 
             } catch (error) {
                 console.error('Error loading episodes:', error);
+                // Display error message to user
                 if (episodesList) {
                     episodesList.innerHTML = `
                         <div class="error-message">
-                            <p>Error loading episodes. Please try again later.</p>
-                            <button onclick="location.reload()" class="btn btn-primary">Retry</button>
+                            <h3>Unable to load episodes</h3>
+                            <p>There seems to be an issue loading the podcast episodes. Please try refreshing the page.</p>
+                            <p>Error: ${error.message}</p>
                         </div>
                     `;
+                }
+            } finally {
+                // Hide loading state
+                const loadingSpinner = document.querySelector('.loading-spinner');
+                if (loadingSpinner) {
+                    loadingSpinner.style.display = 'none';
                 }
             }
         }

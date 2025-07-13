@@ -6,6 +6,7 @@ class Analytics {
         this.userId = this.getUserId();
         this.pageViews = 0;
         this.startTime = Date.now();
+        this.analyticsEndpointAvailable = true; // Will be set to false if endpoint fails
         
         this.init();
     }
@@ -235,19 +236,32 @@ class Analytics {
             window.gtag('event', event.event, event.properties);
         }
 
-        // Send to custom endpoint
-        fetch('/api/analytics', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(event)
-        }).catch(err => {
-            // Silently fail in production
-            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                console.warn('Analytics send failed:', err);
-            }
-        });
+        // Only send to custom endpoint if we're in development or if endpoint exists
+        if (this.isAnalyticsEndpointAvailable()) {
+            fetch('/api/analytics', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(event)
+            }).catch(err => {
+                // Mark endpoint as unavailable if it fails
+                this.analyticsEndpointAvailable = false;
+                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                    console.warn('Analytics send failed:', err);
+                }
+            });
+        }
+    }
+
+    isAnalyticsEndpointAvailable() {
+        // Check if we're in development
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            return true;
+        }
+        
+        // For production, check if we've confirmed the endpoint exists
+        return this.analyticsEndpointAvailable !== false;
     }
 
     startPeriodicReporting() {
@@ -262,22 +276,25 @@ class Analytics {
     sendBatchEvents() {
         const batch = this.events.splice(0, this.events.length);
         
-        fetch('/api/analytics/batch', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                events: batch,
-                sessionId: this.sessionId,
-                userId: this.userId
-            })
-        }).catch(err => {
-            // Silently fail in production
-            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                console.warn('Analytics batch send failed:', err);
-            }
-        });
+        // Only send if endpoint is available
+        if (this.isAnalyticsEndpointAvailable()) {
+            fetch('/api/analytics/batch', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    events: batch,
+                    timestamp: new Date().toISOString()
+                })
+            }).catch(err => {
+                // Mark endpoint as unavailable if it fails
+                this.analyticsEndpointAvailable = false;
+                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                    console.warn('Analytics batch send failed:', err);
+                }
+            });
+        }
     }
 
     // Public methods for manual tracking

@@ -1,12 +1,13 @@
 // Heatmap and Session Recording System
 class HeatmapTracker {
     constructor() {
+        this.isRecording = false;
         this.clicks = [];
         this.moves = [];
         this.scrolls = [];
-        this.isRecording = false;
+        this.events = [];
         this.sessionId = this.generateSessionId();
-        this.startTime = Date.now();
+        this.heatmapEndpointAvailable = true; // Will be set to false if endpoint fails
         
         this.init();
     }
@@ -225,36 +226,57 @@ class HeatmapTracker {
         }, 30000);
     }
 
+    isHeatmapEndpointAvailable() {
+        // Check if we're in development
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            return true;
+        }
+        
+        // For production, check if we've confirmed the endpoint exists
+        return this.heatmapEndpointAvailable !== false;
+    }
+
     sendHeatmapData() {
+        if (this.clicks.length === 0 && this.moves.length === 0 && this.scrolls.length === 0) {
+            return;
+        }
+
         const data = {
             sessionId: this.sessionId,
             url: window.location.href,
-            timestamp: Date.now(),
-            clicks: this.clicks,
-            moves: this.moves,
-            scrolls: this.scrolls,
-            events: this.events || []
+            timestamp: new Date().toISOString(),
+            clicks: this.clicks.slice(),
+            moves: this.moves.slice(),
+            scrolls: this.scrolls.slice(),
+            events: this.events.slice(),
+            viewport: {
+                width: window.innerWidth,
+                height: window.innerHeight
+            }
         };
 
-        // Clear data after sending
+        // Clear data for next batch
         this.clicks = [];
         this.moves = [];
         this.scrolls = [];
         this.events = [];
 
-        // Send to server
-        fetch('/api/heatmap', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
-        }).catch(err => {
-            // Silently fail in production
-            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                console.warn('Heatmap send failed:', err);
-            }
-        });
+        // Send to server only if endpoint is available
+        if (this.isHeatmapEndpointAvailable()) {
+            fetch('/api/heatmap', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            }).catch(err => {
+                // Mark endpoint as unavailable if it fails
+                this.heatmapEndpointAvailable = false;
+                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                    console.warn('Heatmap send failed:', err);
+                }
+            });
+        }
     }
 
     // Generate heatmap visualization (for development)

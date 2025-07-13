@@ -7,14 +7,54 @@ class FormHandler {
 
     init() {
         this.forms.forEach(form => {
-            // Use unified button system instead of duplicating logic
-        const submitButton = form.querySelector('button[type="submit"]');
+            // Only handle forms with data-netlify attribute
+            if (form.hasAttribute('data-netlify')) {
+                form.addEventListener('submit', (e) => this.handleNetlifyForm(e));
+            }
+            
+            const submitButton = form.querySelector('button[type="submit"]');
             if (submitButton) {
-                // The unified button system in app.js handles this
-                // No need to duplicate the loading state logic here
                 console.log('Form handler initialized - using unified button system');
             }
         });
+    }
+
+    async handleNetlifyForm(e) {
+        e.preventDefault();
+        const form = e.target;
+        const submitButton = form.querySelector('button[type="submit"]');
+        const originalText = submitButton ? submitButton.textContent : 'Submit';
+        
+        try {
+            // Show loading state
+            this.showLoadingState(form, submitButton);
+            
+            // Create FormData
+            const formData = new FormData(form);
+            
+            // Submit to Netlify
+            const response = await fetch('/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams(formData).toString()
+            });
+            
+            if (response.ok) {
+                this.showSuccessMessage(form, 'Thank you! Your message has been sent successfully.');
+                form.reset();
+            } else {
+                throw new Error('Form submission failed');
+            }
+            
+        } catch (error) {
+            console.error('Form submission error:', error);
+            this.showErrorMessage(form, 'Sorry, there was an error sending your message. Please try again.');
+        } finally {
+            // Reset button state
+            setTimeout(() => {
+                this.resetButtonState(submitButton, originalText);
+            }, 2000);
+        }
     }
 
     // Legacy methods kept for backward compatibility but delegated to unified system
@@ -22,7 +62,7 @@ class FormHandler {
         // Delegate to unified system
         if (window.setButtonLoadingState) {
             window.setButtonLoadingState(submitButton, true);
-            } else {
+        } else {
             // Fallback for backward compatibility
             if (submitButton) {
                 submitButton.disabled = true;
@@ -81,21 +121,6 @@ class FormHandler {
     validateEmail(email) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
-    }
-
-    async submitForm(form, formData) {
-        // This method can be overridden for different submission endpoints
-        // For now, simulate submission
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                // Simulate random success/failure for testing
-                if (Math.random() > 0.1) {
-                    resolve({ success: true, message: 'Form submitted successfully' });
-                } else {
-                    reject(new Error('Network error'));
-                }
-            }, 1500);
-        });
     }
 }
 

@@ -112,6 +112,12 @@ self.addEventListener('fetch', (event) => {
 
 // Handle API requests (cache first, then network)
 async function handleApiRequest(request) {
+    // Skip service worker for analytics/heatmap APIs on Netlify
+    if (request.url.includes('/api/analytics') || request.url.includes('/api/heatmap')) {
+        // Let these requests fail naturally without service worker intervention
+        return fetch(request);
+    }
+    
     try {
         // Try cache first
         const cachedResponse = await caches.match(request);
@@ -138,22 +144,39 @@ async function handleApiRequest(request) {
         throw new Error('Network request failed');
     } catch (error) {
         console.error('API request failed:', error);
-        // Return a fallback response
-        return new Response(
-            JSON.stringify({ error: 'Offline - data not available' }),
-            {
-                status: 503,
-                statusText: 'Service Unavailable',
-                headers: { 'Content-Type': 'application/json' }
-            }
-        );
+        // Return a generic error response for API requests
+        return new Response(JSON.stringify({ error: 'Service temporarily unavailable' }), {
+            status: 503,
+            headers: { 'Content-Type': 'application/json' }
+        });
     }
 }
 
 // Handle static file requests (cache first, then network)
 async function handleStaticRequest(request) {
+    // For Data directory JSON files, use network first to ensure fresh data
+    if (request.url.includes('/Data/') && request.url.endsWith('.json')) {
+        try {
+            const networkResponse = await fetch(request);
+            if (networkResponse.ok) {
+                // Cache the response
+                updateCache(request, networkResponse.clone());
+                return networkResponse;
+            }
+            throw new Error('Network request failed');
+        } catch (error) {
+            console.error('Data file request failed:', error);
+            // Try cache as fallback
+            const cachedResponse = await caches.match(request);
+            if (cachedResponse) {
+                return cachedResponse;
+            }
+            throw error;
+        }
+    }
+    
     try {
-        // Try cache first
+        // Try cache first for other static files
         const cachedResponse = await caches.match(request);
         if (cachedResponse) {
             return cachedResponse;
@@ -174,7 +197,7 @@ async function handleStaticRequest(request) {
         if (request.url.endsWith('.html')) {
             return caches.match('/404.html');
         }
-        return new Response('Not available offline', { status: 503 });
+        throw error;
     }
 }
 
