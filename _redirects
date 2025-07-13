@@ -1,0 +1,6 @@
+# Netlify redirects file
+# Ensure JSON files are accessible
+/Data/* /Data/:splat 200
+
+# Handle SPA routing
+/* /index.html 200 

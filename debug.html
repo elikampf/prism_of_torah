@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - JSON Loading Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>JSON Loading Debug Test</h1>
+    <p>This page helps debug JSON loading issues on Netlify.</p>
+    
+    <button onclick="testAllFiles()">Test All JSON Files</button>
+    <button onclick="testSingleFile()">Test Single File</button>
+    <button onclick="testNetwork()">Test Network</button>
+    
+    <div id="results"></div>
+    
+    <script>
+        const files = ['Bereishis', 'Shemos', 'Vayikra', 'Bamidbar', 'Devarim', 'Chagim'];
+        
+        function addResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.innerHTML = message;
+            results.appendChild(div);
+        }
+        
+        async function testFile(fileName) {
+            try {
+                addResult(`Testing ${fileName}.json...`, 'info');
+                
+                const response = await fetch(`Data/${fileName}.json`);
+                addResult(`Response status: ${response.status} ${response.statusText}`, response.ok ? 'success' : 'error');
+                
+                if (!response.ok) {
+                    addResult(`Failed to load ${fileName}.json`, 'error');
+                    return false;
+                }
+                
+                const data = await response.json();
+                const episodeCount = Array.isArray(data) ? data.length : 0;
+                const validEpisodes = Array.isArray(data) ? data.filter(ep => ep && ep.episode_name && ep.episode_name.trim() !== '').length : 0;
+                
+                addResult(`✓ ${fileName}.json loaded: ${episodeCount} total episodes, ${validEpisodes} valid episodes`, 'success');
+                return true;
+                
+            } catch (error) {
+                addResult(`✗ Error loading ${fileName}.json: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        async function testAllFiles() {
+            document.getElementById('results').innerHTML = '';
+            addResult('Starting test of all JSON files...', 'info');
+            
+            let successCount = 0;
+            for (const file of files) {
+                const success = await testFile(file);
+                if (success) successCount++;
+            }
+            
+            addResult(`Test complete: ${successCount}/${files.length} files loaded successfully`, successCount === files.length ? 'success' : 'error');
+        }
+        
+        async function testSingleFile() {
+            document.getElementById('results').innerHTML = '';
+            await testFile('Bereishis');
+        }
+        
+        async function testNetwork() {
+            document.getElementById('results').innerHTML = '';
+            addResult('Testing network connectivity...', 'info');
+            
+            try {
+                const response = await fetch('Data/Bereishis.json', { method: 'HEAD' });
+                addResult(`Network test: ${response.status} ${response.statusText}`, response.ok ? 'success' : 'error');
+                
+                if (response.ok) {
+                    addResult('Headers:', 'info');
+                    for (const [key, value] of response.headers.entries()) {
+                        addResult(`  ${key}: ${value}`, 'info');
+                    }
+                }
+            } catch (error) {
+                addResult(`Network error: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html> 

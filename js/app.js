@@ -358,6 +358,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // =====================================================
     
     function initializePodcastFunctionality() {
+        console.log('Initializing podcast functionality...');
+        
         // Initialize podcast-specific functionality
         const TORAH_ORDER = {
             Seforim: ['Bereishis', 'Shemos', 'Vayikra', 'Bamidbar', 'Devarim', 'Chagim'],
@@ -387,10 +389,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const episodesList = document.querySelector('#episodes-container'); // Fixed selector
         const loadMoreBtn = document.querySelector('#load-more-btn');
 
+        console.log('Podcast elements found:', {
+            seferNavContainer: !!seferNavContainer,
+            episodesList: !!episodesList,
+            loadMoreBtn: !!loadMoreBtn
+        });
+
         if (seferNavContainer) {
             renderSeferNav();
             setupEventListeners();
             loadEpisodes();
+        } else {
+            console.warn('Podcast navigation container not found. Are you on the podcast page?');
         }
 
         function renderSeferNav() {
@@ -507,11 +517,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 try {
                     const testResponse = await fetch('Data/Bereishis.json');
                     console.log('Data directory accessible:', testResponse.ok);
+                    console.log('Response status:', testResponse.status);
+                    console.log('Response headers:', Object.fromEntries(testResponse.headers.entries()));
                     if (!testResponse.ok) {
                         console.error('Data directory test failed:', testResponse.status, testResponse.statusText);
                     }
                 } catch (testError) {
                     console.error('Data directory not accessible:', testError);
+                    console.error('Error details:', {
+                        name: testError.name,
+                        message: testError.message,
+                        stack: testError.stack
+                    });
                 }
                 
                 let successCount = 0;
@@ -520,7 +537,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 for (const sefer of TORAH_ORDER.Seforim) {
                     try {
                         console.log(`Loading ${sefer}.json...`);
-                        const response = await fetch(`Data/${sefer}.json`);
+                        
+                        // Try different path variations for Netlify compatibility
+                        let response = null;
+                        let dataPath = `Data/${sefer}.json`;
+                        
+                        // First try the original path
+                        response = await fetch(dataPath);
+                        
+                        // If that fails, try lowercase
+                        if (!response.ok) {
+                            console.log(`Trying lowercase path for ${sefer}...`);
+                            response = await fetch(dataPath.toLowerCase());
+                        }
+                        
+                        // If that fails, try without Data/ prefix
+                        if (!response.ok) {
+                            console.log(`Trying direct path for ${sefer}...`);
+                            response = await fetch(`${sefer}.json`);
+                        }
                         
                         if (!response.ok) {
                             console.error(`Failed to load ${sefer}.json: ${response.status} ${response.statusText}`);
@@ -531,26 +566,37 @@ document.addEventListener('DOMContentLoaded', function() {
                         const data = await response.json();
                         console.log(`Data structure for ${sefer}:`, data);
                         
+                        // Validate JSON structure
+                        if (!data) {
+                            console.error(`✗ Empty data in ${sefer}.json`);
+                            errorCount++;
+                            continue;
+                        }
+                        
                         if (Array.isArray(data)) {
                             // JSON is an array of episodes
-                            const episodesWithSefer = data.map(episode => ({
-                                ...episode,
-                                sefer: sefer,
-                                parsha: episode.episode_name && episode.episode_name.includes('Parshas') 
-                                    ? episode.episode_name.split('Parshas')[1]?.split('-')[0]?.trim() || 'Unknown'
-                                    : 'Unknown'
-                            }));
+                            const episodesWithSefer = data
+                                .filter(episode => episode && episode.episode_name && episode.episode_name.trim() !== '')
+                                .map(episode => ({
+                                    ...episode,
+                                    sefer: sefer,
+                                    parsha: episode.episode_name && episode.episode_name.includes('Parshas') 
+                                        ? episode.episode_name.split('Parshas')[1]?.split('-')[0]?.trim() || 'Unknown'
+                                        : 'Unknown'
+                                }));
                             allEpisodes.push(...episodesWithSefer);
-                            console.log(`✓ Loaded ${data.length} episodes from ${sefer}`);
+                            console.log(`✓ Loaded ${episodesWithSefer.length} episodes from ${sefer}`);
                             successCount++;
                         } else if (data && data.episodes && Array.isArray(data.episodes)) {
                             // JSON is { episodes: [...] }
-                            const episodesWithSefer = data.episodes.map(episode => ({
-                                ...episode,
-                                sefer: sefer
-                            }));
+                            const episodesWithSefer = data.episodes
+                                .filter(episode => episode && episode.episode_name && episode.episode_name.trim() !== '')
+                                .map(episode => ({
+                                    ...episode,
+                                    sefer: sefer
+                                }));
                             allEpisodes.push(...episodesWithSefer);
-                            console.log(`✓ Loaded ${data.episodes.length} episodes from ${sefer}`);
+                            console.log(`✓ Loaded ${episodesWithSefer.length} episodes from ${sefer}`);
                             successCount++;
                         } else if (data && typeof data === 'object') {
                             // Handle other possible structures
@@ -564,12 +610,14 @@ document.addEventListener('DOMContentLoaded', function() {
                             else if (data.items) episodes = data.items;
                             
                             if (episodes && Array.isArray(episodes)) {
-                                const episodesWithSefer = episodes.map(episode => ({
-                                    ...episode,
-                                    sefer: sefer
-                                }));
+                                const episodesWithSefer = episodes
+                                    .filter(episode => episode && episode.episode_name && episode.episode_name.trim() !== '')
+                                    .map(episode => ({
+                                        ...episode,
+                                        sefer: sefer
+                                    }));
                                 allEpisodes.push(...episodesWithSefer);
-                                console.log(`✓ Loaded ${episodes.length} episodes from ${sefer} (fallback)`);
+                                console.log(`✓ Loaded ${episodesWithSefer.length} episodes from ${sefer} (fallback)`);
                                 successCount++;
                             } else {
                                 console.error(`✗ No valid episodes array found in ${sefer}.json`);
@@ -598,6 +646,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <h3>Unable to load episodes</h3>
                                 <p>There seems to be an issue loading the podcast episodes. Please try refreshing the page.</p>
                                 <p>If the problem persists, please contact support.</p>
+                                <p>Debug info: ${successCount} files loaded successfully, ${errorCount} errors</p>
+                                <button class="btn btn-primary" onclick="location.reload()" style="margin-top: var(--space-md);">
+                                    🔄 Retry Loading Episodes
+                                </button>
                             </div>
                         `;
                     }
@@ -620,6 +672,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             <h3>Unable to load episodes</h3>
                             <p>There seems to be an issue loading the podcast episodes. Please try refreshing the page.</p>
                             <p>Error: ${error.message}</p>
+                            <button class="btn btn-primary" onclick="location.reload()" style="margin-top: var(--space-md);">
+                                🔄 Retry Loading Episodes
+                            </button>
                         </div>
                     `;
                 }
