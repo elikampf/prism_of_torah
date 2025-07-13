@@ -757,8 +757,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="episode-header">
                             <h3>${episode_name}</h3>
                             <div class="episode-meta">
-                                <span class="parsha-badge">${sefer} • ${parsha}</span>
-                                ${release_date ? `<span class="date">${release_date}</span>` : ''}
                                 ${durationDisplay ? `<span class="duration">${durationDisplay}</span>` : ''}
                             </div>
                         </div>
