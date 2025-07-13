@@ -3,7 +3,7 @@ const CACHE_NAME = 'prism-torah-v1';
 const STATIC_CACHE = 'prism-static-v1';
 const DYNAMIC_CACHE = 'prism-dynamic-v1';
 
-// Files to cache immediately
+// Files to cache immediately - only include files that definitely exist
 const STATIC_FILES = [
     '/',
     '/index.html',
@@ -14,12 +14,11 @@ const STATIC_FILES = [
     '/privacy.html',
     '/terms.html',
     '/404.html',
-    '/css/main.css',
+    '/styles/main.css',
     '/js/app.js',
     '/js/analytics.js',
     '/js/form-handler.js',
-    '/styles/main.css',
-    '/Images/logo-main.jpg',
+    '/js/heatmap.js',
     '/Images/prism-logo-main.webp',
     '/Images/favicon.ico',
     '/sitemap.xml',
@@ -36,22 +35,36 @@ const API_CACHE = [
     '/Data/Vayikra.json'
 ];
 
-// Install event - cache static files
+// Install event - cache static files with better error handling
 self.addEventListener('install', (event) => {
     console.log('Service Worker installing...');
     
     event.waitUntil(
         caches.open(STATIC_CACHE)
-            .then((cache) => {
+            .then(async (cache) => {
                 console.log('Caching static files');
-                return cache.addAll(STATIC_FILES);
-            })
-            .then(() => {
-                console.log('Static files cached successfully');
+                
+                // Cache files individually to avoid failures from missing files
+                const cachePromises = STATIC_FILES.map(async (file) => {
+                    try {
+                        const response = await fetch(file);
+                        if (response.ok) {
+                            await cache.put(file, response);
+                            console.log(`✓ Cached: ${file}`);
+                        } else {
+                            console.warn(`⚠ Skipped (${response.status}): ${file}`);
+                        }
+                    } catch (error) {
+                        console.warn(`⚠ Failed to cache: ${file}`, error.message);
+                    }
+                });
+                
+                await Promise.allSettled(cachePromises);
+                console.log('Static files caching completed');
                 return self.skipWaiting();
             })
             .catch((error) => {
-                console.error('Error caching static files:', error);
+                console.error('Error during service worker installation:', error);
             })
     );
 });

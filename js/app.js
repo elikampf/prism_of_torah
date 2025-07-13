@@ -1,5 +1,8 @@
 // Prism of Torah - App Scripts
-document.addEventListener('DOMContentLoaded', () => {
+// Initialize everything when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    // Load Google Fonts asynchronously
+    loadGoogleFonts();
     
     // Add page load animation
     document.body.classList.add('page-loaded');
@@ -526,6 +529,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                         
                         const data = await response.json();
+                        console.log(`Data structure for ${sefer}:`, data);
                         
                         if (Array.isArray(data)) {
                             // JSON is an array of episodes
@@ -539,7 +543,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             allEpisodes.push(...episodesWithSefer);
                             console.log(`✓ Loaded ${data.length} episodes from ${sefer}`);
                             successCount++;
-                        } else if (data && Array.isArray(data.episodes)) {
+                        } else if (data && data.episodes && Array.isArray(data.episodes)) {
                             // JSON is { episodes: [...] }
                             const episodesWithSefer = data.episodes.map(episode => ({
                                 ...episode,
@@ -548,6 +552,29 @@ document.addEventListener('DOMContentLoaded', () => {
                             allEpisodes.push(...episodesWithSefer);
                             console.log(`✓ Loaded ${data.episodes.length} episodes from ${sefer}`);
                             successCount++;
+                        } else if (data && typeof data === 'object') {
+                            // Handle other possible structures
+                            console.warn(`⚠ Unexpected data structure in ${sefer}.json:`, data);
+                            console.warn(`Data type: ${typeof data}, Array: ${Array.isArray(data)}`);
+                            
+                            // Try to find episodes in various possible locations
+                            let episodes = null;
+                            if (data.episodes) episodes = data.episodes;
+                            else if (data.data) episodes = data.data;
+                            else if (data.items) episodes = data.items;
+                            
+                            if (episodes && Array.isArray(episodes)) {
+                                const episodesWithSefer = episodes.map(episode => ({
+                                    ...episode,
+                                    sefer: sefer
+                                }));
+                                allEpisodes.push(...episodesWithSefer);
+                                console.log(`✓ Loaded ${episodes.length} episodes from ${sefer} (fallback)`);
+                                successCount++;
+                            } else {
+                                console.error(`✗ No valid episodes array found in ${sefer}.json`);
+                                errorCount++;
+                            }
                         } else {
                             console.warn(`⚠ No episodes found in ${sefer}.json, structure:`, data);
                             errorCount++;
@@ -648,19 +675,44 @@ document.addEventListener('DOMContentLoaded', () => {
             
             episodesList.innerHTML = episodesToShow.map(episode => {
                 const spotify_web_url = episode.spotify_web_url || episode.spotify_url || '#';
+                const embed_url = episode.embed_url || '';
                 const episode_name = episode.episode_name || episode.name || 'Untitled Episode';
                 const episode_description = episode.episode_description || episode.description || 'No description available.';
                 const sefer = episode.sefer || 'Unknown';
                 const parsha = episode.parsha || 'Unknown';
+                const release_date = episode.release_date || '';
+                const duration_minutes = episode.duration_minutes || '';
+                
+                // Create duration display
+                const durationDisplay = duration_minutes ? 
+                    `${Math.floor(duration_minutes)}:${String(Math.round((duration_minutes % 1) * 60)).padStart(2, '0')}` : '';
                 
                 return `
                     <div class="episode-card" data-sefer="${sefer}" data-parsha="${parsha}">
                         <div class="episode-header">
                             <h3>${episode_name}</h3>
-                            <span class="episode-meta">${sefer} • ${parsha}</span>
+                            <div class="episode-meta">
+                                <span class="parsha-badge">${sefer} • ${parsha}</span>
+                                ${release_date ? `<span class="date">${release_date}</span>` : ''}
+                                ${durationDisplay ? `<span class="duration">${durationDisplay}</span>` : ''}
+                            </div>
                         </div>
                         <div class="episode-content">
-                            <p>${episode_description}</p>
+                            <div class="episode-desc">
+                                <p>${episode_description}</p>
+                            </div>
+                            ${embed_url ? `
+                                <div class="spotify-embed">
+                                    <iframe src="${embed_url}" 
+                                            width="100%" 
+                                            height="152" 
+                                            frameborder="0" 
+                                            allowtransparency="true" 
+                                            allow="encrypted-media"
+                                            loading="lazy">
+                                    </iframe>
+                                </div>
+                            ` : ''}
                             <div class="episode-actions">
                                 <a href="${spotify_web_url}" target="_blank" rel="noopener" class="btn btn-secondary" aria-label="Listen to ${episode_name} on Spotify">Listen on Spotify</a>
                             </div>
@@ -776,3 +828,17 @@ document.addEventListener('DOMContentLoaded', () => {
         lastScrollTop = scrollTop;
     });
 }); 
+
+// Load Google Fonts asynchronously to avoid blocking
+function loadGoogleFonts() {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap';
+    link.onload = function() {
+        console.log('Google Fonts loaded successfully');
+    };
+    link.onerror = function() {
+        console.warn('Google Fonts failed to load, using fallback fonts');
+    };
+    document.head.appendChild(link);
+} 
