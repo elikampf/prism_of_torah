@@ -8,7 +8,7 @@ class FormHandler {
     init() {
         this.forms.forEach(form => {
             // Use unified button system instead of duplicating logic
-            const submitButton = form.querySelector('button[type="submit"]');
+        const submitButton = form.querySelector('button[type="submit"]');
             if (submitButton) {
                 // The unified button system in app.js handles this
                 // No need to duplicate the loading state logic here

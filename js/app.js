@@ -95,37 +95,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =====================================================
-    // FORM HANDLING - Standardized
+    // FORM HANDLING - Netlify Compatible
     // =====================================================
     
-    // Enhanced form submission with unified button states
+    // Enhanced form submission that works with Netlify Forms
     const forms = document.querySelectorAll('form');
     forms.forEach(form => {
         const submitButton = form.querySelector('button[type="submit"]');
         const originalButtonText = submitButton ? submitButton.innerHTML : 'Submit';
         
         form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
             // Set loading state
             setButtonLoadingState(submitButton, true);
             
-            try {
-                // Simulate form submission (replace with actual submission logic)
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                
-                // Success handling
-                showFormSuccess(form);
-                form.reset();
-                
-            } catch (error) {
-                // Error handling
-                showFormError(form, 'There was an error submitting your form. Please try again.');
-                
-            } finally {
-                // Reset button state
-                setButtonLoadingState(submitButton, false, originalButtonText);
-            }
+            // For Netlify Forms, we want to let the form submit naturally
+            // but provide user feedback during the process
+            
+            // Small delay to show loading state, then let form submit
+            setTimeout(() => {
+                // Allow the form to submit to Netlify
+                // The form will redirect to Netlify's success page or your custom page
+            }, 1000);
         });
         
         // Add accessibility attributes
@@ -391,12 +381,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Initialize podcast elements
         const seferNavContainer = document.querySelector('.sefer-nav');
-        const episodesList = document.querySelector('.episodes-list');
+        const episodesList = document.querySelector('#episodes-container'); // Fixed selector
         const loadMoreBtn = document.querySelector('#load-more-btn');
 
         if (seferNavContainer) {
-                renderSeferNav();
-                setupEventListeners();
+            renderSeferNav();
+            setupEventListeners();
             loadEpisodes();
         }
 
@@ -502,21 +492,103 @@ document.addEventListener('DOMContentLoaded', () => {
         async function loadEpisodes() {
             try {
                 const allEpisodes = [];
+                const loadingSpinner = document.querySelector('.loading-spinner');
+                
+                // Show loading state
+                if (loadingSpinner) {
+                    loadingSpinner.style.display = 'block';
+                }
+                
+                // Test if we can access the Data directory
+                console.log('Testing Data directory access...');
+                try {
+                    const testResponse = await fetch('Data/Bereishis.json');
+                    console.log('Data directory accessible:', testResponse.ok);
+                } catch (testError) {
+                    console.error('Data directory not accessible:', testError);
+                }
                 
                 for (const sefer of TORAH_ORDER.Seforim) {
-                    const response = await fetch(`Data/${sefer}.json`);
-                    const data = await response.json();
-                    allEpisodes.push(...data.episodes);
+                    try {
+                        console.log(`Loading ${sefer}.json...`);
+                        const response = await fetch(`Data/${sefer}.json`);
+                        
+                        if (!response.ok) {
+                            console.error(`Failed to load ${sefer}.json: ${response.status} ${response.statusText}`);
+                            continue;
+                        }
+                        
+                        const data = await response.json();
+                        
+                        if (data && Array.isArray(data)) {
+                            // Add sefer information to each episode
+                            const episodesWithSefer = data.map(episode => ({
+                                ...episode,
+                                sefer: sefer,
+                                // Extract parsha from episode name if it contains "Parshas"
+                                parsha: episode.episode_name && episode.episode_name.includes('Parshas') 
+                                    ? episode.episode_name.split('Parshas')[1]?.split('-')[0]?.trim() || 'Unknown'
+                                    : 'Unknown'
+                            }));
+                            
+                            allEpisodes.push(...episodesWithSefer);
+                            console.log(`Loaded ${data.length} episodes from ${sefer}`);
+                        } else if (data && data.episodes) {
+                            // Fallback for if the structure changes
+                            const episodesWithSefer = data.episodes.map(episode => ({
+                                ...episode,
+                                sefer: sefer
+                            }));
+                            allEpisodes.push(...episodesWithSefer);
+                            console.log(`Loaded ${data.episodes.length} episodes from ${sefer}`);
+                        } else {
+                            console.warn(`No episodes found in ${sefer}.json`);
+                        }
+                        
+                    } catch (error) {
+                        console.error(`Error loading ${sefer}.json:`, error);
+                    }
+                }
+                
+                // Hide loading state
+                if (loadingSpinner) {
+                    loadingSpinner.style.display = 'none';
+                }
+                
+                if (allEpisodes.length === 0) {
+                    console.error('No episodes loaded from any JSON files');
+                    if (episodesList) {
+                        episodesList.innerHTML = `
+                            <div class="error-message">
+                                <p>Unable to load episodes. This might be due to:</p>
+                                <ul>
+                                    <li>Network connectivity issues</li>
+                                    <li>JSON files not being served correctly</li>
+                                    <li>Case sensitivity issues on the server</li>
+                                </ul>
+                                <p>Please try refreshing the page or contact support if the issue persists.</p>
+                                <button onclick="location.reload()" class="btn btn-primary">Retry</button>
+                            </div>
+                        `;
+                    }
+                    return;
                 }
                 
                 state.episodes = allEpisodes;
                 state.filteredEpisodes = allEpisodes;
                 renderEpisodes();
                 
+                console.log(`Successfully loaded ${allEpisodes.length} total episodes`);
+                
             } catch (error) {
                 console.error('Error loading episodes:', error);
                 if (episodesList) {
-                    episodesList.innerHTML = '<p>Error loading episodes. Please try again later.</p>';
+                    episodesList.innerHTML = `
+                        <div class="error-message">
+                            <p>Error loading episodes. Please try again later.</p>
+                            <button onclick="location.reload()" class="btn btn-primary">Retry</button>
+                        </div>
+                    `;
                 }
             }
         }
@@ -529,18 +601,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
         function filterEpisodes() {
             state.filteredEpisodes = state.episodes.filter(episode => {
+                // Skip empty episodes
+                if (!episode.episode_name || episode.episode_name.trim() === '') {
+                    return false;
+                }
+                
                 const seferMatch = state.filter.sefer === 'All' || episode.sefer === state.filter.sefer;
                 const parshaMatch = state.filter.parsha === 'All' || episode.parsha === state.filter.parsha;
-                return seferMatch && parshaMatch;
-                        });
+                
+                // Also check if episode name contains the parsha name
+                const nameContainsParsha = episode.episode_name && 
+                    episode.episode_name.toLowerCase().includes(state.filter.parsha.toLowerCase());
+                
+                return seferMatch && (parshaMatch || nameContainsParsha);
+            });
         }
 
         function renderEpisodes() {
-            if (!episodesList) return;
+            if (!episodesList) {
+                console.error('episodesList element not found');
+                return;
+            }
 
             const startIndex = (state.currentPage - 1) * state.episodesPerPage;
             const endIndex = startIndex + state.episodesPerPage;
             const episodesToShow = state.filteredEpisodes.slice(0, endIndex);
+            
+            console.log(`Rendering ${episodesToShow.length} episodes (page ${state.currentPage})`);
             
             if (episodesToShow.length === 0) {
                 episodesList.innerHTML = '<p>No episodes found for the selected filter.</p>';
@@ -548,15 +635,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             episodesList.innerHTML = episodesToShow.map(episode => {
-                const spotify_web_url = episode.spotify_url ? episode.spotify_url.replace('open.spotify.com', 'open.spotify.com') : '#';
-                const episode_name = episode.name || 'Untitled Episode';
-                const episode_description = episode.description || 'No description available.';
+                const spotify_web_url = episode.spotify_web_url || episode.spotify_url || '#';
+                const episode_name = episode.episode_name || episode.name || 'Untitled Episode';
+                const episode_description = episode.episode_description || episode.description || 'No description available.';
+                const sefer = episode.sefer || 'Unknown';
+                const parsha = episode.parsha || 'Unknown';
                 
                 return `
-                    <div class="episode-card" data-sefer="${episode.sefer}" data-parsha="${episode.parsha}">
+                    <div class="episode-card" data-sefer="${sefer}" data-parsha="${parsha}">
                         <div class="episode-header">
                             <h3>${episode_name}</h3>
-                            <span class="episode-meta">${episode.sefer} • ${episode.parsha}</span>
+                            <span class="episode-meta">${sefer} • ${parsha}</span>
                         </div>
                         <div class="episode-content">
                             <p>${episode_description}</p>
