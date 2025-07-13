@@ -520,21 +520,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         
                         const data = await response.json();
                         
-                        if (data && Array.isArray(data)) {
-                            // Add sefer information to each episode
+                        if (Array.isArray(data)) {
+                            // JSON is an array of episodes
                             const episodesWithSefer = data.map(episode => ({
                                 ...episode,
                                 sefer: sefer,
-                                // Extract parsha from episode name if it contains "Parshas"
                                 parsha: episode.episode_name && episode.episode_name.includes('Parshas') 
                                     ? episode.episode_name.split('Parshas')[1]?.split('-')[0]?.trim() || 'Unknown'
                                     : 'Unknown'
                             }));
-                            
                             allEpisodes.push(...episodesWithSefer);
                             console.log(`Loaded ${data.length} episodes from ${sefer}`);
-                        } else if (data && data.episodes) {
-                            // Fallback for if the structure changes
+                        } else if (data && Array.isArray(data.episodes)) {
+                            // JSON is { episodes: [...] }
                             const episodesWithSefer = data.episodes.map(episode => ({
                                 ...episode,
                                 sefer: sefer
