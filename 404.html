@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found | Prism of Torah</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="The page you're looking for doesn't exist. Return to Prism of Torah for Torah wisdom and insights.">
+    <meta name="keywords" content="404, page not found, Prism of Torah, Torah wisdom">
+    <meta name="robots" content="noindex, nofollow">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://prismoftorah.com/404.html">
+    <meta property="og:title" content="Page Not Found | Prism of Torah">
+    <meta property="og:description" content="The page you're looking for doesn't exist. Return to Prism of Torah for Torah wisdom and insights.">
+    <meta property="og:image" content="https://prismoftorah.com/Images/prism-logo-main.webp">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://prismoftorah.com/404.html">
+    <meta property="twitter:title" content="Page Not Found | Prism of Torah">
+    <meta property="twitter:description" content="The page you're looking for doesn't exist. Return to Prism of Torah for Torah wisdom and insights.">
+    <meta property="twitter:image" content="https://prismoftorah.com/Images/prism-logo-main.webp">
+    
+    <!-- Additional SEO -->
+    <meta name="author" content="Rabbi Asaf Aharon Prisman">
+    <link rel="canonical" href="https://prismoftorah.com/404.html">
+    
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" href="Images/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <header class="main-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo-container">
+                    <img src="Images/prism-logo-main.webp" alt="Prism of Torah Logo" class="logo-img">
+                    <div class="logo-text">
+                        <span class="logo-title">Prism of Torah</span>
+                    </div>
+                </a>
+                <nav class="main-nav">
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="podcast.html">Podcast</a></li>
+                        <li><a href="books.html">Books</a></li>
+                        <li><a href="about.html">About</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </nav>
+                <a href="#" class="btn btn-primary header-cta">Subscribe</a>
+                <button class="mobile-nav-toggle" aria-label="Open navigation">
+                    <span class="hamburger"></span>
+                </button>
+            </div>
+        </div>
+    </header>
+    <div class="mobile-nav">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="podcast.html">Podcast</a></li>
+            <li><a href="books.html">Books</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="contact.html">Contact</a></li>
+        </ul>
+    </div>
+    <main class="error-page-content text-center">
+        <div class="container">
+            <h1>404</h1>
+            <h2>This Page Seems to Have Wandered Off</h2>
+            <p>Like the Jewish people in the desert, sometimes we take unexpected paths.</p>
+            <p>Let's get you back to familiar territory.</p>
+            <div class="error-navigation">
+                <a href="index.html" class="btn btn-primary">Return to Homepage</a>
+                <div class="error-links">
+                    <a href="podcast.html">Podcast</a> |
+                    <a href="books.html">Books</a> |
+                    <a href="about.html">About</a>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-nav">
+                    <h4>Navigate</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="podcast.html">Podcast</a></li>
+                        <li><a href="books.html">Books</a></li>
+                        <li><a href="about.html">About</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-legal">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="privacy.html">Privacy Policy</a></li>
+                        <li><a href="terms.html">Terms & Conditions</a></li>
+                    </ul>
+                </div>
+                <div class="footer-newsletter">
+                    <h4>Subscribe</h4>
+                    <p>Get weekly Torah wisdom delivered to your inbox.</p>
+                    <form name="newsletter" method="POST" data-netlify="true">
+                        <input type="email" name="email" placeholder="Your email address" required>
+                        <button type="submit" class="btn btn-primary">Subscribe</button>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 <a href="http://elipodcastproductions.com" target="_blank" rel="noopener noreferrer">Eli Podcast Productions</a>. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+    <script src="js/analytics.js"></script>
+    <script src="js/heatmap.js"></script>
+    <script src="js/json-fixer.js"></script>
+    <script src="js/form-handler.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('Service Worker registered successfully:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.error('Service Worker registration failed:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html> 

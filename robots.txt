@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://prismoftorah.com/sitemap.xml
+
+# Disallow admin areas (if any exist in the future)
+Disallow: /admin/
+Disallow: /private/
+
+# Allow all content
+Allow: /css/
+Allow: /js/
+Allow: /images/
+Allow: /data/
+
+# Crawl delay (optional - be respectful to server)
+Crawl-delay: 1 

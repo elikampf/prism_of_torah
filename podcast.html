@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Podcast | Prism of Torah</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Explore 300+ episodes of Torah wisdom. Browse our complete podcast library by parsha and chagim, and find practical insights for modern life.">
+    <meta name="keywords" content="Jewish Podcast, Torah Podcast, Parsha, Chagim, Rabbi Asaf Prisman">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://prismoftorah.com/podcast.html">
+    <meta property="og:title" content="Podcast | Prism of Torah">
+    <meta property="og:description" content="Explore 300+ episodes of Torah wisdom. Browse our complete podcast library by parsha and chagim.">
+    <meta property="og:image" content="https://prismoftorah.com/Images/podcast_cover.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://prismoftorah.com/podcast.html">
+    <meta property="twitter:title" content="Podcast | Prism of Torah">
+    <meta property="twitter:description" content="Explore 300+ episodes of Torah wisdom. Browse our complete podcast library by parsha and chagim.">
+    <meta property="twitter:image" content="https://prismoftorah.com/Images/podcast_cover.png">
+    
+    <!-- Additional SEO -->
+    <meta name="author" content="Rabbi Asaf Aharon Prisman">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://prismoftorah.com/podcast.html">
+
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" href="Images/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <header class="main-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo-container">
+                    <img src="Images/prism-logo-main.webp" alt="Prism of Torah Logo" class="logo-img">
+                    <div class="logo-text">
+                        <span class="logo-title">Prism of Torah</span>
+                    </div>
+                </a>
+                <nav class="main-nav">
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="podcast.html" class="active">Podcast</a></li>
+                        <li><a href="books.html">Books</a></li>
+                        <li><a href="about.html">About</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </nav>
+                <a href="#" class="btn btn-primary header-cta">Subscribe</a>
+                <button class="mobile-nav-toggle" aria-label="Open navigation">
+                    <span class="hamburger"></span>
+                </button>
+            </div>
+        </div>
+    </header>
+    <div class="mobile-nav">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="podcast.html">Podcast</a></li>
+            <li><a href="books.html">Books</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="contact.html">Contact</a></li>
+        </ul>
+    </div>
+    <main>
+        <section class="hero">
+            <div class="container hero-content">
+                <div class="hero-text">
+                    <h1>300+ Episodes of Torah Wisdom at Your Fingertips</h1>
+                    <p class="sub-header">Seven years of weekly insights, organized by sefer and chagim. Find the perfect Torah message for any moment.</p>
+                    <div class="hero-ctas">
+                        <a href="#podcast-listings" class="btn btn-primary">▶ Start Listening</a>
+                        <a href="#podcast-listings" class="btn btn-secondary">📚 Browse Episodes</a>
+                    </div>
+                    <p class="social-proof">⭐ Seven years of consistent weekly wisdom ⭐ New episodes drop each Thursday ⭐ Join thousands of families worldwide</p>
+                </div>
+                <div class="hero-image">
+                    <img src="Images/podcast_cover.png" alt="Prism of Torah Podcast Cover">
+                </div>
+            </div>
+            <div class="hero-lines"><div></div></div>
+        </section>
+
+        <section id="podcast-listings" class="podcast-page-section">
+            <div class="container">
+                <!-- Search and Filter Bar -->
+                <div class="podcast-controls">
+                    <div class="search-container">
+                        <input type="text" id="podcast-search" class="search-input" placeholder="Search episodes by title, parsha, or topic...">
+                        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.35-4.35"></path>
+                        </svg>
+                    </div>
+                    <div class="filter-controls">
+                        <label for="sort-episodes" class="sr-only">Sort episodes</label>
+                        <select id="sort-episodes" class="sort-select" aria-label="Sort episodes">
+                            <option value="newest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                            <option value="title">Title A-Z</option>
+                            <option value="duration">Duration</option>
+                            <option value="torah">Torah Order</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="podcast-nav">
+                    <div class="sefer-nav">
+                        <!-- Sefer navigation will be generated here -->
+                        <div class="skeleton skeleton-nav" style="height: 50px; border-radius: var(--radius-lg);"></div>
+                    </div>
+                </div>
+
+                <div class="episodes-section">
+                    <div class="loading-spinner"></div>
+                    <div id="episodes-container" class="episodes-container">
+                        <!-- Loading skeleton cards -->
+                        <div class="skeleton skeleton-card">
+                            <div class="skeleton skeleton-title" style="height: 24px; margin-bottom: 12px;"></div>
+                            <div class="skeleton skeleton-text" style="height: 16px; width: 60%; margin-bottom: 8px;"></div>
+                            <div class="skeleton skeleton-text" style="height: 16px; width: 80%; margin-bottom: 16px;"></div>
+                            <div class="skeleton skeleton-text" style="height: 40px; border-radius: var(--radius-md);"></div>
+                        </div>
+                        <div class="skeleton skeleton-card">
+                            <div class="skeleton skeleton-title" style="height: 24px; margin-bottom: 12px;"></div>
+                            <div class="skeleton skeleton-text" style="height: 16px; width: 60%; margin-bottom: 8px;"></div>
+                            <div class="skeleton skeleton-text" style="height: 16px; width: 80%; margin-bottom: 16px;"></div>
+                            <div class="skeleton skeleton-text" style="height: 40px; border-radius: var(--radius-md);"></div>
+                        </div>
+                        <div class="skeleton skeleton-card">
+                            <div class="skeleton skeleton-title" style="height: 24px; margin-bottom: 12px;"></div>
+                            <div class="skeleton skeleton-text" style="height: 16px; width: 60%; margin-bottom: 8px;"></div>
+                            <div class="skeleton skeleton-text" style="height: 16px; width: 80%; margin-bottom: 16px;"></div>
+                            <div class="skeleton skeleton-text" style="height: 40px; border-radius: var(--radius-md);"></div>
+                        </div>
+                    </div>
+                    <div id="load-more-container" class="text-center">
+                        <button id="load-more-btn" class="btn btn-secondary">Load More</button>
+                    </div>
+                    <div id="no-results" class="text-center" style="display: none;">
+                        <p>No episodes found matching your search.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-nav">
+                    <h4>Navigate</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="podcast.html">Podcast</a></li>
+                        <li><a href="books.html">Books</a></li>
+                        <li><a href="about.html">About</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-legal">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="privacy.html">Privacy Policy</a></li>
+                        <li><a href="terms.html">Terms & Conditions</a></li>
+                    </ul>
+                </div>
+                <div class="footer-newsletter">
+                    <h4>Subscribe</h4>
+                    <p>Get weekly Torah wisdom delivered to your inbox.</p>
+                    <form name="newsletter" method="POST" data-netlify="true">
+                        <input type="email" name="email" placeholder="Your email address" required>
+                        <button type="submit" class="btn btn-primary">Subscribe</button>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 <a href="http://elipodcastproductions.com" target="_blank" rel="noopener noreferrer">Eli Podcast Productions</a>. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+    <script src="js/analytics.js"></script>
+    <script src="js/heatmap.js"></script>
+    <script src="js/json-fixer.js"></script>
+    <script src="js/form-handler.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('Service Worker registered successfully:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.error('Service Worker registration failed:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html> 
