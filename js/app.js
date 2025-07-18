@@ -4,6 +4,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load Google Fonts asynchronously
     loadGoogleFonts();
     
+    // Load GoatCounter analytics
+    loadGoatCounter();
+    
     // Add page load animation
     document.body.classList.add('page-loaded');
     
@@ -575,29 +578,58 @@ document.addEventListener('DOMContentLoaded', function() {
                         
                         if (Array.isArray(data)) {
                             // JSON is an array of episodes
-                            const episodesWithSefer = data
-                                .filter(episode => episode && episode.episode_name && episode.episode_name.trim() !== '')
-                                .map(episode => ({
-                                    ...episode,
-                                    sefer: sefer,
-                                    parsha: episode.episode_name && episode.episode_name.includes('Parshas') 
-                                        ? episode.episode_name.split('Parshas')[1]?.split('-')[0]?.trim() || 'Unknown'
-                                        : 'Unknown'
-                                }));
-                            allEpisodes.push(...episodesWithSefer);
-                            console.log(`✓ Loaded ${episodesWithSefer.length} episodes from ${sefer}`);
-                            successCount++;
+                            const validEpisodes = data.filter(episode => {
+                                // More robust validation for episode entries
+                                return episode && 
+                                       typeof episode === 'object' &&
+                                       episode.episode_name && 
+                                       episode.episode_name.trim() !== '' &&
+                                       episode.episode_name.trim().length > 0 &&
+                                       episode.spotify_web_url && 
+                                       episode.spotify_web_url.trim() !== '';
+                            });
+                            
+                            const episodesWithSefer = validEpisodes.map(episode => ({
+                                ...episode,
+                                sefer: sefer,
+                                parsha: episode.episode_name && episode.episode_name.includes('Parshas') 
+                                    ? episode.episode_name.split('Parshas')[1]?.split('-')[0]?.trim() || 'Unknown'
+                                    : 'Unknown'
+                            }));
+                            
+                            if (episodesWithSefer.length > 0) {
+                                allEpisodes.push(...episodesWithSefer);
+                                console.log(`✓ Loaded ${episodesWithSefer.length} valid episodes from ${sefer} (filtered ${data.length - validEpisodes.length} invalid entries)`);
+                                successCount++;
+                            } else {
+                                console.warn(`⚠ No valid episodes found in ${sefer}.json after filtering`);
+                                errorCount++;
+                            }
                         } else if (data && data.episodes && Array.isArray(data.episodes)) {
                             // JSON is { episodes: [...] }
-                            const episodesWithSefer = data.episodes
-                                .filter(episode => episode && episode.episode_name && episode.episode_name.trim() !== '')
-                                .map(episode => ({
-                                    ...episode,
-                                    sefer: sefer
-                                }));
-                            allEpisodes.push(...episodesWithSefer);
-                            console.log(`✓ Loaded ${episodesWithSefer.length} episodes from ${sefer}`);
-                            successCount++;
+                            const validEpisodes = data.episodes.filter(episode => {
+                                return episode && 
+                                       typeof episode === 'object' &&
+                                       episode.episode_name && 
+                                       episode.episode_name.trim() !== '' &&
+                                       episode.episode_name.trim().length > 0 &&
+                                       episode.spotify_web_url && 
+                                       episode.spotify_web_url.trim() !== '';
+                            });
+                            
+                            const episodesWithSefer = validEpisodes.map(episode => ({
+                                ...episode,
+                                sefer: sefer
+                            }));
+                            
+                            if (episodesWithSefer.length > 0) {
+                                allEpisodes.push(...episodesWithSefer);
+                                console.log(`✓ Loaded ${episodesWithSefer.length} valid episodes from ${sefer} (filtered ${data.episodes.length - validEpisodes.length} invalid entries)`);
+                                successCount++;
+                            } else {
+                                console.warn(`⚠ No valid episodes found in ${sefer}.episodes after filtering`);
+                                errorCount++;
+                            }
                         } else if (data && typeof data === 'object') {
                             // Handle other possible structures
                             console.warn(`⚠ Unexpected data structure in ${sefer}.json:`, data);
@@ -905,3 +937,18 @@ function loadGoogleFonts() {
     };
     document.head.appendChild(link);
 } 
+
+// Load GoatCounter analytics asynchronously
+function loadGoatCounter() {
+    const script = document.createElement('script');
+    script.setAttribute('data-goatcounter', 'https://elikampf.goatcounter.com/count');
+    script.src = '//gc.zgo.at/count.js';
+    script.async = true;
+    script.onload = function() {
+        console.log('GoatCounter analytics loaded successfully');
+    };
+    script.onerror = function() {
+        console.warn('GoatCounter analytics failed to load');
+    };
+    document.head.appendChild(script);
+}
